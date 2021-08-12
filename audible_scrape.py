@@ -57,7 +57,7 @@ def getRating(row):
         GRnumratings = ratingString[ratingString.index('avg')+3]
     return GRrating, GRnumratings
 
-possibles = pd.DataFrame({'Book ID':pd.Series([], dtype='int'),'Goodreads Title':[], 'Goodreads Author':[], 'Goodreads Rating':pd.Series([], dtype='float'), 'Number of Ratings':pd.Series([], dtype='int')})
+possibles = pd.DataFrame({'Book ID':pd.Series([], dtype='int'),'Goodreads Title':[], 'Goodreads Author':[], 'Goodreads Link':[], 'Goodreads Rating':pd.Series([], dtype='float'), 'Number of Ratings':pd.Series([], dtype='int')})
 for index, row in df.iterrows():
     title = row['Audible Title']
     author =  row['Audible Author']
@@ -75,6 +75,7 @@ for index, row in df.iterrows():
             titleLinks = row.findAll('a',{'class': 'bookTitle'})
             for link in titleLinks:
                 GRtitle = link.find('span').text
+                GRlink = 'https://www.goodreads.com' + link.get('href')
                 print('Goodreads title is: ' + GRtitle)
             authorLinks = row.findAll('a',{'class': 'authorName'})
             for link in authorLinks:
@@ -86,13 +87,23 @@ for index, row in df.iterrows():
                 # word2 = re.sub(r'[^\w\s]','',author.split()[0])
                 # print(word1 == word2)
                 # print(re.sub(r'[^\w\s]','',GRauthor.split()[0]) == re.sub(r'[^\w\s]','',author.split()[0]))
-                if re.sub(r'[^\w\s]','',GRauthor.replace("'", "").split()[0]) == re.sub(r'[^\w\s]','',author.replace("'", "").split()[0]) and re.sub(r'[^\w\s]','',GRtitle.replace("'", "").split()[0]) == re.sub(r'[^\w\s]','',title.replace("'", "").split()[0]):
-                    print('GR Title matches: ' + GRtitle)
-                    # print('Set rating')
-                    GRrating, GRnumratings = getRating(row)
-                    possibleRow = [index, GRtitle, GRauthor, float(GRrating), int(GRnumratings.replace(',', ''))]
-                    possibles.loc[len(possibles)] = possibleRow
-                    break
+                print(re.sub(r'[^\w\s]','',author.replace("'", "")).split()[0])
+                if len(re.sub(r'[^\w\s]','',author.replace("'", "")).split()) > 1:
+                    if re.sub(r'[^\w\s]','',author.replace("'", "")).split()[1] in re.sub(r'[^\w\s]','',GRauthor.replace("'", "")).split() and re.sub(r'[^\w\s]','',GRtitle.replace("'", "")).split()[0] == re.sub(r'[^\w\s]','',title.replace("'", "")).split()[0]:
+                        print('GR Title matches: ' + GRtitle)
+                        # print('Set rating')
+                        GRrating, GRnumratings = getRating(row)
+                        possibleRow = [index, GRtitle, GRauthor, GRlink, float(GRrating), int(GRnumratings.replace(',', ''))]
+                        possibles.loc[len(possibles)] = possibleRow
+                        break
+                else:     
+                    if re.sub(r'[^\w\s]','',author.replace("'", "")).split()[0] in re.sub(r'[^\w\s]','',GRauthor.replace("'", "")).split() and re.sub(r'[^\w\s]','',GRtitle.replace("'", "")).split()[0] == re.sub(r'[^\w\s]','',title.replace("'", "")).split()[0]:
+                        print('GR Title matches: ' + GRtitle)
+                        # print('Set rating')
+                        GRrating, GRnumratings = getRating(row)
+                        possibleRow = [index, GRtitle, GRauthor, GRlink, float(GRrating), int(GRnumratings.replace(',', ''))]
+                        possibles.loc[len(possibles)] = possibleRow
+                        break
   
 idx = possibles.groupby(['Book ID'])['Number of Ratings'].transform(max) == possibles['Number of Ratings']
 GRdf = possibles[idx]

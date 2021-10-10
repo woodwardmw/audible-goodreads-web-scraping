@@ -9,30 +9,22 @@ Created on Wed Sep  8 18:54:59 2021
 from numpy.core.numeric import False_
 import pandas as pd
 import os
-import re
-from pandas.core.base import SelectionMixin
-import requests
-from bs4 import BeautifulSoup
-import math
+
 from goodreads import getRating, getRatingFromRow, getGoodreadsMatches
 from audible import audibleLogin, getCategories, getAudibleDataForCategory
 from amazon import amazonLogin, getAmazonMatches
 
 base_url = 'https://www.audible.com/ep/vital-listens-sale?source_code=AUDOR2231007219V3V&ref_=pe_3517000_607828960'
-book_file = 'Vital Listens Sale Oct 2021.csv'  # Can be just the Audible list, or an already processed merge of Audible and Goodreads Data
+book_file = 'Test.csv'  # Can be just the Audible list, or an already processed merge of Audible and Goodreads Data
 
-getAudibleData = False
-getGoodreadsRatings = True
+getAudibleData = True
+getGoodreadsRatings = False
 getAmazonLinks = False
+refresh_existing = False
 
-# //*[@id="center-5"]/div/div/div[1]/div/div/div/div
 categorySelect = 'body > div.adbl-page > div.adbl-main > div#center-5 > div.bc-row-responsive > div.bc-col-responsive > div.bc-box > div > div.bc-container > div.bc-row-responsive > div.bc-col-responsive'
-# categorySelect_old = 'body > div.adbl-page > div.adbl-main > div.bc-container > div > div > div#left-1 > form > div.categories > span > ul'
-# /html/body/div[1]/div[8]/div[11]/div/div/span/ul/div/li[1]/div/div[1]/div
 bookItemSelect = 'body > div.adbl-page > div.adbl-main > div#center-10 > div.bc-section > div.bc-container > span > ul > div > li.productListItem'  # to end in li
-# /html/body/div[1]/div[8]/div[11]/div/div/span/ul/div/li[1]/div/div[1]/div/div[1]/div/div[1]
 imageDivSelect = 'div.bc-row-responsive > div.bc-col-9 > div.bc-row-responsive > div.bc-col-4 > div.bc-row-responsive > div.bc-col-12 > div'
-# /html/body/div[1]/div[8]/div[11]/div/div/span/ul/div/li[1]/div/div[1]/div/div[2]/div/div/span/ul
 textDivSelect1 = 'div.bc-row-responsive > div.bc-col-9 > div.bc-row-responsive > div.bc-col-7 > div.bc-row-responsive > div.bc-col-12 > span > ul'
 MAX_PAGES = 8
 
@@ -55,7 +47,7 @@ if getAudibleData == True:
 if getGoodreadsRatings == True:
     linked_URLs = pd.read_csv(os.getcwd() + '/Linked_URLs.csv')
     book_df = pd.read_csv(os.getcwd() + '/' + book_file)
-    goodreads_df = getGoodreadsMatches(book_df, linked_URLs, refresh_existing = False)
+    goodreads_df = getGoodreadsMatches(book_df, linked_URLs, refresh_existing)
     book_df.update(goodreads_df)    
     book_df.to_csv(os.getcwd() + '/' + book_file, index = False)
 

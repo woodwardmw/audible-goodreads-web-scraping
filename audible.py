@@ -21,9 +21,6 @@ def getAudibleDataForCategory(url, category, max_pages, df, web, bookItemSelect,
         ADpage = web.get_page_source()
         ADsoup = BeautifulSoup(ADpage, 'html.parser')
         items = ADsoup.select(bookItemSelect)
-        # f = open("test2.txt", "w")  THIS CAN HELP TO VIEW THE HTML OF AN ITEM
-        # f.writelines(str(items[1]))
-        # f.close()
         for item in items:
             textdiv = item.select(textDivSelect1)  #[0]
             imagediv = item.select(imageDivSelect)[0]
@@ -37,17 +34,17 @@ def getAudibleDataForCategory(url, category, max_pages, df, web, bookItemSelect,
             author = info[0].select('li.authorLabel')[0].find_all('span')[0].text.replace('By:','').strip()
             audible_link = 'https://www.audible.com' + imagediv.find_all('a')[0].get('href')
             image_link = imagediv.find_all('img')[0].get('src').replace('_SL32_QL50_ML2_', '_SL500_')
-            if df['Audible_Title'].str.contains(title).any() == False:  # If the title is not already in the database
+            if df['Audible_Title'].str.contains(title, regex = False).any() == False:  # If the title is not already in the database
                 # print(f'Title not in database yet: {title}')    
                 row = [title, subtitle, author, audible_link, image_link, category, None, None, None, None]
                 # print(row)
                 df.loc[len(df),:] = row
-            elif df.loc[df['Audible_Title'].str.contains(title)]['Audible_Category'].str.contains(category).any() == False:
-                print(df.loc[df['Audible_Title'].str.contains(title)]['Audible_Category'])
+            elif df.loc[df['Audible_Title'].str.contains(title, regex = False)]['Audible_Category'].str.contains(category, regex = False).any() == False:  # If it's already in the database, add the current category
+                print(df.loc[df['Audible_Title'].str.contains(title, regex = False)]['Audible_Category'])
                 print(f'Title: {title}')
                 print(f'Category: {category}')
-                df.loc[df.loc[:,'Audible_Title'].str.contains(title), 'Audible_Category'] = df.loc[df.loc[:,'Audible_Title'].str.contains(title), 'Audible_Category'] + ', ' + category
-                print(df.loc[df.loc[:,'Audible_Title'].str.contains(title), 'Audible_Category'] )
+                df.loc[df.loc[:,'Audible_Title'].str.contains(title, regex = False), 'Audible_Category'] = df.loc[df.loc[:,'Audible_Title'].str.contains(title, regex = False), 'Audible_Category'] + ', ' + category
+                print(df.loc[df.loc[:,'Audible_Title'].str.contains(title, regex = False), 'Audible_Category'] )
         page_number += 1
     # print(df)
     return df

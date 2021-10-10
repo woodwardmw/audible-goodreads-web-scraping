@@ -8,7 +8,7 @@ Created on Sat Jul 10 19:44:13 2021
 from os import listdir
 import re
 from shutil import copyfile
-from icecream import ic
+# from icecream import ic
 
 externalLocation = '/media/mark/disk/DCIM/100MSDCF'
 internalLocation = '/home/mark/Processing'
@@ -31,14 +31,14 @@ while count <= lastExternalCount:
     dst = internalLocation + '/DSC' + f'{count:05d}' + '.ARW'
     try:
         copyfile(src, dst)
-        ic(src,dst)
+        print(src,dst)
     except FileNotFoundError:
         ic(src + " does not exist")
     src = externalLocation + '/DSC' + f'{count:05d}' + '.JPG'
     dst = internalLocation + '/jpeg/DSC' + f'{count:05d}' + '.JPG'
     try:
         copyfile(src, dst)
-        ic(src,dst)
+        print(src,dst)
     except FileNotFoundError:
         ic(src + " does not exist")
     count += 1

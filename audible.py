@@ -39,7 +39,7 @@ def getAudibleDataForCategory(url, category, max_pages, df, web, bookItemSelect,
             image_link = imagediv.find_all('img')[0].get('src').replace('_SL32_QL50_ML2_', '_SL500_')
             if df['Audible_Title'].str.contains(title).any() == False:  # If the title is not already in the database
                 # print(f'Title not in database yet: {title}')    
-                row = [title, subtitle, author, audible_link, image_link, category, None, None, None]
+                row = [title, subtitle, author, audible_link, image_link, category, None, None, None, None]
                 # print(row)
                 df.loc[len(df),:] = row
             elif df.loc[df['Audible_Title'].str.contains(title)]['Audible_Category'].str.contains(category).any() == False:

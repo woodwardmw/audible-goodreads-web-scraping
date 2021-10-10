@@ -22,7 +22,7 @@ def amazonLogin():
 
 def getAmazonMatches(book_df, linked_URLs, web, refresh_existing = False):
     for index, item in book_df.iterrows():
-        if index >= 400:
+        if True:
             print(index)
             title = item['Audible_Title']
             print(title)
@@ -37,8 +37,11 @@ def getAmazonMatches(book_df, linked_URLs, web, refresh_existing = False):
                 web.go_to(search_url)
                 page = web.get_page_source()
                 soup = BeautifulSoup(page, 'html.parser')
-                if len(soup.select('body > div#a-page > div#search > div.s-desktop-content > div.sg-col > div.sg-col-inner > span > div.s-result-list > div > div.sg-col-inner > span > div > div > div.sg-row > div.sg-col-8-of-16 > div.sg-col-inner > div.a-section > div.a-section > h2')) > 0:
-                    amazon_URL = soup.select('body > div#a-page > div#search > div.s-desktop-content > div.sg-col > div.sg-col-inner > span > div.s-result-list > div > div.sg-col-inner > span > div > div > div.sg-row > div.sg-col-8-of-16 > div.sg-col-inner > div.a-section > div.a-section > h2')[0].find_all('a')[0].get('href')
+                htmlItemSnippetList = soup.select('body > div#a-page > div#search > div.s-desktop-content > div.sg-col > div.sg-col-inner > span > div.s-result-list > div.s-result-item > div.sg-col-inner > div > div > div > div.sg-row > div.sg-col-8-of-16 > div.sg-col-inner > div.a-section > div.a-section > h2')
+                # print(htmlItemSnippetList)
+                if len(htmlItemSnippetList) > 0:
+                    print(htmlItemSnippetList[0].find_all('a'))
+                    amazon_URL = htmlItemSnippetList[0].find_all('a')[0].get('href')
                     print(amazon_URL)
                     amazon_URL = 'https://www.amazon.com' + amazon_URL + '&tag=listenerslist-20'
             book_df.loc[index,'Amazon_Link'] = amazon_URL

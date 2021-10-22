@@ -36,22 +36,42 @@ class AudibleItem(AudiblePage):
     html_for_item: str   # I think. But maybe it's something else, that comes from audible_page.get_html_list_of_items?
     def __init__(self, category, html_for_item):
         self.category = category
-        self.title, self.subtitle, self.author, self.audible_link, self.image_link = self.get_data_from_html(html_for_item)
+        self.text_div = html_for_item.select(TEXT_DIV_SELECT_PREFIX)  #[0]
+        self.image_div = html_for_item.select(IMAGE_DIV_SELECT_PREFIX)[0]
+        self.title = self.get_title()
+        self.subtitle = self.get_subtitle()
+        self.author = self.get_author()
+        self.audible_link = self.get_audible_link()
+        self.image_link = self.get_image_link()
 
-    def get_data_from_html(self, html_for_item):
-        """Get title, author, etc from HTML for item"""
-        text_div = html_for_item.select(TEXT_DIV_SELECT_PREFIX)  #[0]
-        imaged_div = html_for_item.select(IMAGE_DIV_SELECT_PREFIX)[0]
-        title = text_div[0].find_all('h3')[0].text.strip()
+    def get_title(self):
+        """Get title for the item"""
+        title = self.text_div[0].find_all('h3')[0].text.strip()
         print(title)
+        return title
+
+    def get_subtitle(self):
+        """Get subtitle (if any) for the item"""
         try:
-            subtitle = text_div[0].select('li.subtitle')[0].find_all('span')[0].text.strip()
+            subtitle = self.text_div[0].select('li.subtitle')[0].find_all('span')[0].text.strip()
         except:
             subtitle = ''
-        author = text_div[0].select('li.authorLabel')[0].find_all('span')[0].text.replace('By:','').strip()
-        audible_link = 'https://www.audible.com' + imaged_div.find_all('a')[0].get('href')
-        image_link = imaged_div.find_all('img')[0].get('src').replace('_SL32_QL50_ML2_', '_SL500_')
-        return title, subtitle, author, audible_link, image_link
+        return subtitle
+
+    def get_author(self):
+        """Get author for the item"""
+        author = self.text_div[0].select('li.authorLabel')[0].find_all('span')[0].text.replace('By:','').strip()
+        return author
+    
+    def get_audible_link(self):
+        """Get Audible Link for the item"""
+        audible_link = 'https://www.audible.com' + self.image_div.find_all('a')[0].get('href')
+        return audible_link
+    
+    def get_image_link(self):
+        """Get Audible Image Link for the item"""
+        image_link = self.image_div.find_all('img')[0].get('src').replace('_SL32_QL50_ML2_', '_SL500_')
+        return image_link
 
 
 categories_dict = {'cat1': 'url1', 'cat2': 'url2'}

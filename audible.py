@@ -73,6 +73,32 @@ class AudibleItem(AudiblePage):
         image_link = self.image_div.find_all('img')[0].get('src').replace('_SL32_QL50_ML2_', '_SL500_')
         return image_link
 
+class Book:
+    def __init__(self, title, author, audible_link, image_link, category, subtitle = None, goodreads_link = None, amazon_link = None, average_rating = 0, num_ratings = 0):
+        self.title = title
+        self.subtitle = subtitle
+        self.author = author
+        self.audible_link = audible_link
+        self.image_link = image_link
+        self.category = category
+        self.goodreads_link = goodreads_link
+        self.amazon_link = amazon_link
+        self.average_rating = average_rating
+        self.num_ratings = num_ratings
+    
+    def already_in_df(self, df):
+        if df['Audible_Title'].str.contains(self.title, regex = False).any():  # If the title matches a title of a row in the df, check whether the author matches the author of that row in the df
+            row_in_df = df['Audible_Title'].str.contains(self.title, regex = False)
+            return df.loc[row_in_df]['Audible_Author'].str.contains(self.author, regex = False) # Previously had .any() - maybe it needs that?
+        else:
+            return False
+    
+    def add_to_df(df):
+        """Add this book to the df, and return the df"""
+        df.loc[len(df),:] = [self.title, self.subtitle, self.author, self.audible_link, self.image_link, self.category, self.goodreads_link, self.amazon_link, self.average_rating, self.num_ratings]
+        return df
+
+
 
 categories_dict = {'cat1': 'url1', 'cat2': 'url2'}
 categories = [Category(name = key, url = value) for key, value in categories_dict.items()]

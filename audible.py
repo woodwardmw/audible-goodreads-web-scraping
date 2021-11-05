@@ -8,6 +8,12 @@ IMAGE_DIV_SELECT_PREFIX = None
 df = pd.DataFrame({'Audible_Title':pd.Series([], dtype='str'), 'Audible_Subtitle':pd.Series([], dtype='str'), 'Audible_Author':pd.Series([], dtype='str'), 'Audible_Link':pd.Series([], dtype='str'), 'Image_Link':pd.Series([], dtype='str'), 'Audible_Category':pd.Series([], dtype='str'), 'Goodreads_Link':pd.Series([], dtype='str'), 'Amazon_Link':pd.Series([], dtype='str'), 'Goodreads_Rating':pd.Series([], dtype='float'), 'Number_of_Ratings':pd.Series([], dtype='int')})
 web = audibleLogin()
 
+def audibleLogin():
+    web = Browser()
+    web.go_to('https://www.amazon.com/ap/signin?clientContext=133-8565718-7694964&openid.return_to=https%3A%2F%2Fwww.audible.com%2F%3FoverrideBaseCountry%3Dtrue%26pf_rd_p%3D27448286-da3b-4d18-b236-d4299a63a797%26pf_rd_r%3DM7P9G7XTQA54YGKBZCM5%26ipRedirectOverride%3Dtrue%26%3D&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=audible_shared_web_us&openid.mode=checkid_setup&marketPlaceId=AF2M0KC94RCEA&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&pageId=amzn_audible_bc_us&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.pape.max_auth_age=900&siteState=audibleid.userType%3Damzn%2Caudibleid.mode%3Did_res%2CclientContext%3D136-3313877-4249540%2CsourceUrl%3Dhttps%253A%252F%252Fwww.audible.com%252F%253FoverrideBaseCountry%25253Dtrue%252526pf_rd_p%25253D27448286-da3b-4d18-b236-d4299a63a797%252526pf_rd_r%25253DM7P9G7XTQA54YGKBZCM5%252526ipRedirectOverride%25253Dtrue%252526%2Csignature%3DosFxeuOwWVQcTSj2BceMSdDy7d4wYj3D&pf_rd_p=00c37833-8fd7-4332-bdb1-cd84f72c7953&pf_rd_r=GKJWN891WPPXKXCSBXXE') 
+    time.sleep(10)
+    return web
+
 class Category:
     """A category in the Audible sale"""
     url: str
@@ -24,7 +30,7 @@ class AudiblePage(Category):
     def __init__(self, category, page_number):
         super().__init__(self, category.category_name, category.url)
         self.page_number = page_number
-        self.items_html_parsed = self.get_html_list_of_items(web)
+        self.items_html_parsed = None
     
     def get_html_list_of_items(self, web) -> list:
         """For the Audible page, returns a list of HTML chunks, each list entry containing the HTML relating to one book"""
@@ -35,8 +41,8 @@ class AudiblePage(Category):
             return items_html_parsed
     
     def __eq__(self, other):
-        if isinstance(other, Category):
-            return other.
+        if isinstance(other, Category) and self.items_html_parsed is not None:
+            return other.items_html_parsed == self.items_html_parsed
 
 class AudibleItem(AudiblePage):
     """An Audible item, defined by a chunk of HTML, relating to one book"""

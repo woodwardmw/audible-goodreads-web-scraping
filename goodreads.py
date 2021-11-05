@@ -60,8 +60,7 @@ def getGoodreadsMatches(book_df, linked_URLs, refresh_existing = False):
                     possibles.loc[len(possibles)] = possibleRow
                     finished = True
             else: # Get from Goodreads search
-                title = title.split(':', 1)[0]
-                search_url = 'https://www.goodreads.com/search?q=' + title.replace(' ', '+').replace("'","%27") + '+' + author.replace(' ', '+').replace("'","%27").replace('PhD', '').replace('MD', '').replace('Dr', '').replace('translator', '').replace('foreword', '').replace('featuring', '').replace('introduction', '').replace('note', '').replace('afterword', '').replace('essay', '').replace('contributor', '')
+                search_url = 'https://www.goodreads.com/search?q=' + title.replace(' ', '+').replace("'","-") + '+' + author.replace(' ', '+').replace('PhD', '').replace('MD', '').replace('Dr', '').replace('translator', '').replace('foreword', '').replace('featuring', '').replace('introduction', '').replace('note', '').replace('afterword', '')
                 if True:  # Can be modified to restrict to a certain index
                     GRpage = requests.get(search_url)
                     GRsoup = BeautifulSoup(GRpage.text, 'html.parser')
@@ -76,7 +75,7 @@ def getGoodreadsMatches(book_df, linked_URLs, refresh_existing = False):
                         for link in authorLinks:
                             GRauthor = link.find('span').text
                             if len(re.sub(r'[^\w\s]','',author.replace("'", "")).split()) > 1:
-                                if re.sub(r'[^\w\s]','',author.replace("'", "")).split()[1] in re.sub(r'[^\w\s]','',GRauthor.replace("'", "%27s")).split() and re.sub(r'[^\w\s]','',GRtitle.replace("'", "")).split()[0] == re.sub(r'[^\w\s]','',title.replace("'", "")).split()[0]:
+                                if re.sub(r'[^\w\s]','',author.replace("'", "")).split()[1] in re.sub(r'[^\w\s]','',GRauthor.replace("'", "")).split() and re.sub(r'[^\w\s]','',GRtitle.replace("'", "")).split()[0] == re.sub(r'[^\w\s]','',title.replace("'", "")).split()[0]:
                                     GRrating, GRnumratings = getRatingFromRow(row)
                                     possibleRow = [index, GRlink, float(GRrating), int(GRnumratings.replace(',', ''))]
                                     possibles.loc[len(possibles)] = possibleRow

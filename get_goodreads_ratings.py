@@ -14,19 +14,19 @@ from goodreads import getRating, getRatingFromRow, getGoodreadsMatches
 from audible import audibleLogin, getCategories, getAudibleDataForCategory
 from amazon import amazonLogin, getAmazonMatches
 
-base_url = 'https://www.audible.com/ep/vital-listens-sale?source_code=AUDOR2231007219V3V&ref_=pe_3517000_607828960'
-book_file = 'Test.csv'  # Can be just the Audible list, or an already processed merge of Audible and Goodreads Data
+base_url = 'https://www.audible.com/special-promo/2for1/cat?node=23435846011'
+book_file = 'Monster_Sale_Oct_2021.csv'  # Can be just the Audible list, or an already processed merge of Audible and Goodreads Data
 
-getAudibleData = True
-getGoodreadsRatings = False
+getAudibleData = False
+getGoodreadsRatings = True
 getAmazonLinks = False
 refresh_existing = False
 
-categorySelect = 'body > div.adbl-page > div.adbl-main > div#center-5 > div.bc-row-responsive > div.bc-col-responsive > div.bc-box > div > div.bc-container > div.bc-row-responsive > div.bc-col-responsive'
-bookItemSelect = 'body > div.adbl-page > div.adbl-main > div#center-10 > div.bc-section > div.bc-container > span > ul > div > li.productListItem'  # to end in li
-imageDivSelect = 'div.bc-row-responsive > div.bc-col-9 > div.bc-row-responsive > div.bc-col-4 > div.bc-row-responsive > div.bc-col-12 > div'
-textDivSelect1 = 'div.bc-row-responsive > div.bc-col-9 > div.bc-row-responsive > div.bc-col-7 > div.bc-row-responsive > div.bc-col-12 > span > ul'
-MAX_PAGES = 8
+categorySelect = 'body > div.adbl-page > div.adbl-main > div.bc-container > div.bc-row-responsive > div.bc-col-3 > div#left-1 > form > div > span > ul'
+bookItemSelect = 'body > div.adbl-page > div.adbl-main > div.bc-container > div.bc-row-responsive > div.bc-col-9 > div#center-3 > div.bc-section > div > span > ul > div > li.productListItem'  # to end in li
+imageDivSelect = 'div.bc-row-responsive > div.bc-col-8 > div.bc-row-responsive > div.bc-col-5 > div.bc-row-responsive > div.bc-col-12 > div'
+textDivSelect1 = 'div.bc-row-responsive > div.bc-col-6 > div.bc-row-responsive > div.bc-col-12 > span > ul'
+MAX_PAGES = 7
 
 
 

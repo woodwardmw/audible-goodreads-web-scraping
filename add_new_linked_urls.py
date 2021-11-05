@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 
-book_file = 'Vital Listens Sale Oct 2021.csv'
+book_file = 'Monster_Sale_Oct_2021.csv'
 linked_URLs = pd.read_csv(os.getcwd() + '/' + 'Linked_URLs.csv')
 book_df = pd.read_csv(os.getcwd() + '/' + book_file)
 

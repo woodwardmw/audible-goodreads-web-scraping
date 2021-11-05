@@ -1,10 +1,12 @@
 from bs4 import BeautifulSoup
-from webbot import Browser 
+from webbot import Browser
+
 
 LIST_OF_ITEMS_SELECT_PREFIX = None # Input here
 TEXT_DIV_SELECT_PREFIX = None
 IMAGE_DIV_SELECT_PREFIX = None
 df = pd.DataFrame({'Audible_Title':pd.Series([], dtype='str'), 'Audible_Subtitle':pd.Series([], dtype='str'), 'Audible_Author':pd.Series([], dtype='str'), 'Audible_Link':pd.Series([], dtype='str'), 'Image_Link':pd.Series([], dtype='str'), 'Audible_Category':pd.Series([], dtype='str'), 'Goodreads_Link':pd.Series([], dtype='str'), 'Amazon_Link':pd.Series([], dtype='str'), 'Goodreads_Rating':pd.Series([], dtype='float'), 'Number_of_Ratings':pd.Series([], dtype='int')})
+web = audibleLogin()
 
 class Category:
     """A category in the Audible sale"""
@@ -18,17 +20,23 @@ class AudiblePage(Category):
     """An Audible page, corresponding to (part of) a category, with multiple books listed"""
     category: Category
     page_number: int
+
     def __init__(self, category, page_number):
         super().__init__(self, category.category_name, category.url)
         self.page_number = page_number
+        self.items_html_parsed = self.get_html_list_of_items(web)
     
     def get_html_list_of_items(self, web) -> list:
-        """For the Audible page, returns a list of HTML chunks each list entry containing the HTML relating to one book"""
+        """For the Audible page, returns a list of HTML chunks, each list entry containing the HTML relating to one book"""
             web.go_to(self.url + '&pageSize=50&page=' + str(self.page_number))
             audible_page_html = web.get_page_source()
             audible_page_html_parsed = BeautifulSoup(audible_page_html, 'html.parser')
             items_html_parsed = audible_page_html_parsed.select(LIST_OF_ITEMS_SELECT_PREFIX)
             return items_html_parsed
+    
+    def __eq__(self, other):
+        if isinstance(other, Category):
+            return other.
 
 class AudibleItem(AudiblePage):
     """An Audible item, defined by a chunk of HTML, relating to one book"""

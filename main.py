@@ -2,22 +2,23 @@ import getData
 import pickle
 import json
 import audible
+from goodreads import getRating
 
-BOOK_FILE = 'Monster_Sale_Oct_2021.csv'  # Can be just the Audible list, or an already processed merge of Audible and Goodreads Data
+BOOK_FILE = 'Black_Friday_Sale_Nov_2021.csv'  # Can be just the Audible list, or an already processed merge of Audible and Goodreads Data
 
-IMPORT_CATEGORIES_FROM_FILE = 'Json'
-IMPORT_BOOKS_FROM_FILE = 'Json'
-GET_AUDIBLE_DATA = False
-GET_GOODREADS_RATINGS = True
+IMPORT_CATEGORIES_FROM_FILE = False
+IMPORT_BOOKS_FROM_FILE = False
+GET_AUDIBLE_DATA = True
+GET_GOODREADS_RATINGS = False
 GET_AMAZON_LINKS = False
 REFRESH_EXISTING = False
 
-BASE_URL = 'https://www.audible.com/search?node=18573518011'
+BASE_URL = 'https://www.audible.com/ep/black-friday-week-sale-2021'
 #BASE_CATEGORY = 'fiction'
-CATEGORY_SELECT = 'body > div.adbl-page > div.adbl-main > div.bc-container > div.bc-row-responsive > div.bc-col-3 > div#left-1 > form > div > div > span > ul'
-BOOK_ITEM_SELECT = 'body > div.adbl-page > div.adbl-main > div.bc-container > div.bc-row-responsive > div.bc-col-9 > div#center-3 > div.bc-section > div > span > ul > div > li.productListItem'  # to end in li
-IMAGE_DIV_SELECT = 'div.bc-row-responsive > div.bc-col-8 > div.bc-row-responsive > div.bc-col-5 > div.bc-row-responsive > div.bc-col-12 > div'
-TEXT_DIV_SELECT = 'div.bc-row-responsive > div.bc-col-8 > div.bc-row-responsive > div.bc-col-6 > div.bc-row-responsive > div.bc-col-12 > span > ul'
+CATEGORY_SELECT = 'body > div.adbl-page > div.adbl-main > div#center-5 > div.bc-row-responsive > div.bc-col-responsive > div.bc-box > div.bc-box-padding-mini > div.bc-container > div.bc-row-responsive'
+BOOK_ITEM_SELECT = 'body > div.adbl-page > div.adbl-main > div#center-10 > div.bc-section > div > span > ul > div > li.productListItem'  # to end in li
+IMAGE_DIV_SELECT = 'div.bc-row-responsive > div.bc-col-9 > div.bc-row-responsive > div.bc-col-4 > div.bc-row-responsive > div.bc-col-12 > div'
+TEXT_DIV_SELECT = 'div.bc-row-responsive > div.bc-col-9 > div.bc-row-responsive > div.bc-col-7 > div.bc-row-responsive > div.bc-col-12 > span > ul'
 
 def obj_dict(obj):
     return obj._asdict()

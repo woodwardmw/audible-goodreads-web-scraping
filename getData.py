@@ -23,9 +23,12 @@ class Setup:
         soup = BeautifulSoup(page, 'html.parser')
         
         info = soup.select(CATEGORY_SELECT)
+        # print(info)
         for part in info:
             links = part.findAll('a')
+            # print(links)
             for link in links:
+                # print("Here")
                 if link.text != 'All Categories':
                     categories.append(audible.Category(link.text, 'https://www.audible.com' + link.get('href').split('&')[0]))
         return categories

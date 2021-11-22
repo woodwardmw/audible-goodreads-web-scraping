@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 import json
 import re
+import requests
+import utils
 
 from main import BOOK_ITEM_SELECT, IMAGE_DIV_SELECT, TEXT_DIV_SELECT
 
@@ -150,25 +152,25 @@ class AudibleItem:
 class Book:
     def __init__(self, title, author, audible_link, image_link, category_name, subtitle = None, goodreads_link = None, amazon_link = None, average_rating = 0, num_ratings = 0):
         self.title = title
-        assert self.title is None or isinstance(self.title, str)
+        # assert self.title is None or isinstance(self.title, str)
         self.subtitle = subtitle
-        assert self.subtitle is None or isinstance(self.subtitle, str)
+        # assert self.subtitle is None or isinstance(self.subtitle, str)
         self.author = author
-        assert self.author is None or isinstance(self.author, str)
+        # assert self.author is None or isinstance(self.author, str)
         self.audible_link = audible_link
-        assert self.audible_link is None or isinstance(self.audible_link, str)
+        # assert self.audible_link is None or isinstance(self.audible_link, str)
         self.image_link = image_link
-        assert self.image_link is None or isinstance(self.image_link, str)
+        # assert self.image_link is None or isinstance(self.image_link, str)
         self.category_name = category_name
-        assert self.category_name is None or isinstance(self.category_name, str)
+        # assert self.category_name is None or isinstance(self.category_name, str)
         self.goodreads_link = goodreads_link
-        assert self.goodreads_link is None or isinstance(self.goodreads_link, str)
+        # assert self.goodreads_link is None or isinstance(self.goodreads_link, str)
         self.amazon_link = amazon_link
-        assert self.amazon_link is None or isinstance(self.amazon_link, str)
+        # assert self.amazon_link is None or isinstance(self.amazon_link, str)
         self.average_rating = average_rating
-        assert self.average_rating is None or isinstance(self.category_name, float)
+        # assert self.average_rating is None or isinstance(self.category_name, float)
         self.num_ratings = num_ratings
-        assert self.num_ratings is None or isinstance(self.num_ratings, int)
+        # assert self.num_ratings is None or isinstance(self.num_ratings, int)
     
     def already_in_df(self, df):
         if df['Audible_Title'].str.contains(self.title, regex = False).any():  # If the title matches a title of a row in the df, check whether the author matches the author of that row in the df
@@ -177,13 +179,86 @@ class Book:
         else:
             return False
     
-    def add_to_df(df):
+    def add_to_df(self, df):
         """Add this book to the df, and return the df"""
         df.loc[len(df),:] = [self.title, self.subtitle, self.author, self.audible_link, self.image_link, self.category, self.goodreads_link, self.amazon_link, self.average_rating, self.num_ratings]
         return df
+    
+    # def get_goodreads_rating(self):
+
+    # def is_in_linked_urls(self):
+
+    def get_rating_from_url(self):
+        GRrating = None
+        GRnumratings = None
+        try:
+            page = requests.get(self.goodreads_link)
+            soup = BeautifulSoup(page.text, 'html.parser')
+            bookMeta = soup.select('body > div.content > div.mainContentContainer > div.mainContent > div.mainContentFloat > div.leftContainer > div#topcol > div#metacol > div#bookMeta')
+            ratingSpan = bookMeta[0].findAll('span', {'itemprop': 'ratingValue'})
+            GRrating = re.split('\s', ratingSpan[0].text.strip())[0]
+            numRatingsSpan = bookMeta[0].findAll('meta', {'itemprop': 'ratingCount'})
+            GRnumratings = re.split('\s', numRatingsSpan[0].text.strip())[0]
+        except:
+            pass
+        return GRrating, GRnumratings
+
+    def get_rating_from_search(self):
+        title_adjusted = self.title.split(':', 1)[0].replace(' ', '+').replace("'","%27")
+        author_adjusted = self.author.replace(' ', '+').replace("'","%27").replace('PhD', '').replace('MD', '').replace('Dr', '').replace('translator', '').replace('foreword', '').replace('featuring', '').replace('introduction', '').replace('note', '').replace('afterword', '').replace('essay', '').replace('contributor', '')
+        search_url = 'https://www.goodreads.com/search?q=' + title_adjusted + '+' + author_adjusted
+        goodreads_page = requests.get(search_url)
+        goodreads_soup = BeautifulSoup(goodreads_page.text, 'html.parser')
+        rows = goodreads_soup.select('body > div > div > div > div > div.leftContainer > table.tableList > tr')
+        for row in rows:
+            titleLinks = row.findAll('a',{'class': 'bookTitle'})
+            for link in titleLinks:
+                goodreads_title = link.find('span').text
+                goodreads_link = 'https://www.goodreads.com' + link.get('href')
+                print('Goodreads title is: ' + goodreads_title)
+            authorLinks = row.findAll('a',{'class': 'authorName'})
+            for link in authorLinks:
+                goodreads_author = link.find('span').text
+            if len(re.sub(r'[^\w\s]','',self.author.replace("'", "")).split()) > 1:
+                if re.sub(r'[^\w\s]','',self.author.replace("'", "")).split()[1] in re.sub(r'[^\w\s]','',goodreads_author.replace("'", "%27s")).split() and re.sub(r'[^\w\s]','',goodreads_title.replace("'", "")).split()[0] == re.sub(r'[^\w\s]','',title.replace("'", "")).split()[0]:
+                    
+                    GRrating, GRnumratings = getRatingFromRow(row)
+                    possibleRow = [index, GRlink, float(GRrating), int(GRnumratings.replace(',', ''))]
+                    possibles.loc[len(possibles)] = possibleRow
+                    finished = True
+                    break
+                elif re.sub(r'[^\w\s]','',author.replace("'", "")).split()[-1] in re.sub(r'[^\w\s]','',goodreads_author.replace("'", "")).split() and re.sub(r'[^\w\s]','',goodreads_title.replace("'", "")).split()[0] == re.sub(r'[^\w\s]','',title.replace("'", "")).split()[0]:
+                    GRrating, GRnumratings = getRatingFromRow(row)
+                    possibleRow = [index, GRlink, float(GRrating), int(GRnumratings.replace(',', ''))]
+                    possibles.loc[len(possibles)] = possibleRow
+                    finished = True
+                    break
+            elif len(re.sub(r'[^\w\s]','',author.replace("'", "")).split()) > 0:     
+                if re.sub(r'[^\w\s]','',author.replace("'", "")).split()[0] in re.sub(r'[^\w\s]','',goodreads_author.replace("'", "")).split() and re.sub(r'[^\w\s]','',goodreads_title.replace("'", "")).split()[0] == re.sub(r'[^\w\s]','',title.replace("'", "")).split()[0]:
+                    GRrating, GRnumratings = getRatingFromRow(row)
+                    possibleRow = [index, GRlink, float(GRrating), int(GRnumratings.replace(',', ''))]
+                    possibles.loc[len(possibles)] = possibleRow
+                    finished = True
+                    break
+            elif re.sub(r'[^\w\s]','',goodreads_title.replace("'", "")).split()[0] == re.sub(r'[^\w\s]','',title.replace("'", "")).split()[0]:
+                GRrating, GRnumratings = getRatingFromRow(row)
+                possibleRow = [index, GRlink, float(GRrating), int(GRnumratings.replace(',', ''))]
+                possibles.loc[len(possibles)] = possibleRow
+                finished = True
+                break
+
 
     def __repr__(self):
         if self.author:
             return self.title + ': ' + self.author + '\n'
         else:
             return self.title + '\n'
+
+class PossibleGoodreadsMatch:
+    def __init__(self, index, goodreads_link, goodreads_rating, goodreads_num_ratings):
+        self.index = index
+        self.goodreads_link = goodreads_link
+        self.goodreads_rating = goodreads_rating
+        self.goodreads_num_ratings = goodreads_num_ratings
+
+    

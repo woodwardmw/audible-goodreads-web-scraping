@@ -1,67 +1,117 @@
 from bs4 import BeautifulSoup
-from webbot import Browser
+import json
+import re
 
-
-LIST_OF_ITEMS_SELECT_PREFIX = None # Input here
-TEXT_DIV_SELECT_PREFIX = None
-IMAGE_DIV_SELECT_PREFIX = None
-df = pd.DataFrame({'Audible_Title':pd.Series([], dtype='str'), 'Audible_Subtitle':pd.Series([], dtype='str'), 'Audible_Author':pd.Series([], dtype='str'), 'Audible_Link':pd.Series([], dtype='str'), 'Image_Link':pd.Series([], dtype='str'), 'Audible_Category':pd.Series([], dtype='str'), 'Goodreads_Link':pd.Series([], dtype='str'), 'Amazon_Link':pd.Series([], dtype='str'), 'Goodreads_Rating':pd.Series([], dtype='float'), 'Number_of_Ratings':pd.Series([], dtype='int')})
-web = audibleLogin()
-
-def audibleLogin():
-    web = Browser()
-    web.go_to('https://www.amazon.com/ap/signin?clientContext=133-8565718-7694964&openid.return_to=https%3A%2F%2Fwww.audible.com%2F%3FoverrideBaseCountry%3Dtrue%26pf_rd_p%3D27448286-da3b-4d18-b236-d4299a63a797%26pf_rd_r%3DM7P9G7XTQA54YGKBZCM5%26ipRedirectOverride%3Dtrue%26%3D&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=audible_shared_web_us&openid.mode=checkid_setup&marketPlaceId=AF2M0KC94RCEA&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&pageId=amzn_audible_bc_us&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.pape.max_auth_age=900&siteState=audibleid.userType%3Damzn%2Caudibleid.mode%3Did_res%2CclientContext%3D136-3313877-4249540%2CsourceUrl%3Dhttps%253A%252F%252Fwww.audible.com%252F%253FoverrideBaseCountry%25253Dtrue%252526pf_rd_p%25253D27448286-da3b-4d18-b236-d4299a63a797%252526pf_rd_r%25253DM7P9G7XTQA54YGKBZCM5%252526ipRedirectOverride%25253Dtrue%252526%2Csignature%3DosFxeuOwWVQcTSj2BceMSdDy7d4wYj3D&pf_rd_p=00c37833-8fd7-4332-bdb1-cd84f72c7953&pf_rd_r=GKJWN891WPPXKXCSBXXE') 
-    time.sleep(10)
-    return web
+from main import BOOK_ITEM_SELECT, IMAGE_DIV_SELECT, TEXT_DIV_SELECT
 
 class Category:
     """A category in the Audible sale"""
-    url: str
-    category_name: str
     def __init__(self, category_name, url):
         self.url = url
+        assert re.match('^http[s]*:\/\/', self.url), 'The URL must start with http(s)://'
         self.category_name = category_name
+    
+    # def __repr__(self):
+    #     return self.category_name + ': ' + self.url
+    
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=4)
 
-class AudiblePage(Category):
+    def getAudiblePages(self, web, START_PAGE = 1):
+        audible_pages = []
+        page_number = START_PAGE
+        assert isinstance(page_number, int) and page_number >= 1 
+        while True:
+            new_page = AudiblePage(self.category_name, self.url, page_number, web)
+            print(new_page)
+            if not audible_pages:
+                audible_pages.append(new_page)
+                print(f'Page {page_number} added')
+            elif new_page == audible_pages[-1]:
+                print(f'Page {page_number} is the same as the previous one')
+                break
+            else:
+                audible_pages.append(new_page)
+                print(f'Page {page_number} added')
+            page_number += 1
+        return audible_pages
+
+    def __repr__(self):
+        return self.category_name + ': ' + self.url
+
+    # def toJSON(self):
+    #     return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+class AudiblePage:
     """An Audible page, corresponding to (part of) a category, with multiple books listed"""
     category: Category
     page_number: int
 
-    def __init__(self, category, page_number):
-        super().__init__(self, category.category_name, category.url)
+    def __init__(self, category_name, category_url, page_number, web):
+        self.category_name = category_name
+        self.category_url = category_url
         self.page_number = page_number
-        self.items_html_parsed = None
+        self.html_list_of_items = self.get_html_list_of_items(web, BOOK_ITEM_SELECT)
+        self.items = self.getAudibleItems(IMAGE_DIV_SELECT, TEXT_DIV_SELECT)
+
+    # def __repr__(self):
+    #     return self.category_name + ' / Page ' + str(self.page_number)
     
-    def get_html_list_of_items(self, web) -> list:
+    def get_html_list_of_items(self, web, BOOK_ITEM_SELECT) -> list:
         """For the Audible page, returns a list of HTML chunks, each list entry containing the HTML relating to one book"""
-            web.go_to(self.url + '&pageSize=50&page=' + str(self.page_number))
-            audible_page_html = web.get_page_source()
-            audible_page_html_parsed = BeautifulSoup(audible_page_html, 'html.parser')
-            items_html_parsed = audible_page_html_parsed.select(LIST_OF_ITEMS_SELECT_PREFIX)
-            return items_html_parsed
+        web.go_to(self.category_url + '&pageSize=50&page=' + str(self.page_number))
+        audible_page_html = web.get_page_source()
+        audible_page_html_parsed = BeautifulSoup(audible_page_html, 'html.parser')
+        html_list_of_items = audible_page_html_parsed.select(BOOK_ITEM_SELECT)
+        return html_list_of_items
+
+    def getAudibleItems(self, IMAGE_DIV_SELECT, TEXT_DIV_SELECT) -> list:
+        audible_items = []
+        for html_for_item in self.html_list_of_items:
+            new_item = AudibleItem(self.category_name, html_for_item, IMAGE_DIV_SELECT, TEXT_DIV_SELECT)
+            print(new_item)
+            if any(item.title == new_item.title and item.author == new_item.author for item in audible_items):
+                existing_item = next(item for item in audible_items if item.title == new_item.title and item.author == new_item.author)
+                existing_item.category_name = existing_item.category_name + ', ' + self.category_name
+            else:
+                audible_items.append(new_item)
+        return audible_items
     
     def __eq__(self, other):
-        if isinstance(other, Category) and self.items_html_parsed is not None:
-            return other.items_html_parsed == self.items_html_parsed
+        if isinstance(other, AudiblePage) and self.html_list_of_items is not None:
+            return self.items[0].title == other.items[0].title and self.items[0].author == other.items[0].author
+    
+    def __repr__(self):
+        return self.category_name + ': Page ' + str(self.page_number)
 
-class AudibleItem(AudiblePage):
+class AudibleItem:
     """An Audible item, defined by a chunk of HTML, relating to one book"""
     category: Category
     html_for_item: str   # I think. But maybe it's something else, that comes from audible_page.get_html_list_of_items?
-    def __init__(self, category, html_for_item):
-        self.category = category
-        self.text_div = html_for_item.select(TEXT_DIV_SELECT_PREFIX)  #[0]
-        self.image_div = html_for_item.select(IMAGE_DIV_SELECT_PREFIX)[0]
+    def __init__(self, category_name, html_for_item, IMAGE_DIV_SELECT, TEXT_DIV_SELECT):
+        self.category_name = category_name
+        self.text_div = html_for_item.select(TEXT_DIV_SELECT)  #[0]
+        self.image_div = html_for_item.select(IMAGE_DIV_SELECT)[0]
         self.title = self.get_title()
         self.subtitle = self.get_subtitle()
         self.author = self.get_author()
         self.audible_link = self.get_audible_link()
         self.image_link = self.get_image_link()
+    
+    def __eq__(self, other):
+        if isinstance(other, AudibleItem):
+            return self.title == other.title and self.author == other.author
+
+    # def __repr__(self):
+    #     if self.author:
+    #         return self.title + ', ' + self.author
+    #     else:
+    #         return self.title
 
     def get_title(self):
         """Get title for the item"""
         title = self.text_div[0].find_all('h3')[0].text.strip()
-        print(title)
         return title
 
     def get_subtitle(self):
@@ -69,13 +119,17 @@ class AudibleItem(AudiblePage):
         try:
             subtitle = self.text_div[0].select('li.subtitle')[0].find_all('span')[0].text.strip()
         except:
-            subtitle = ''
+            subtitle = None
         return subtitle
 
     def get_author(self):
         """Get author for the item"""
-        author = self.text_div[0].select('li.authorLabel')[0].find_all('span')[0].text.replace('By:','').strip()
-        return author
+        try:
+            author = self.text_div[0].select('li.authorLabel')[0].find_all('span')[0].text.replace('By:','').strip()
+        except:
+            author = None
+        else:
+            return author
     
     def get_audible_link(self):
         """Get Audible Link for the item"""
@@ -86,19 +140,35 @@ class AudibleItem(AudiblePage):
         """Get Audible Image Link for the item"""
         image_link = self.image_div.find_all('img')[0].get('src').replace('_SL32_QL50_ML2_', '_SL500_')
         return image_link
+    
+    def __repr__(self):
+        if self.author:
+            return self.title + ': ' + self.author
+        else:
+            return self.title
 
 class Book:
-    def __init__(self, title, author, audible_link, image_link, category, subtitle = None, goodreads_link = None, amazon_link = None, average_rating = 0, num_ratings = 0):
+    def __init__(self, title, author, audible_link, image_link, category_name, subtitle = None, goodreads_link = None, amazon_link = None, average_rating = 0, num_ratings = 0):
         self.title = title
+        assert self.title is None or isinstance(self.title, str)
         self.subtitle = subtitle
+        assert self.subtitle is None or isinstance(self.subtitle, str)
         self.author = author
+        assert self.author is None or isinstance(self.author, str)
         self.audible_link = audible_link
+        assert self.audible_link is None or isinstance(self.audible_link, str)
         self.image_link = image_link
-        self.category = category
+        assert self.image_link is None or isinstance(self.image_link, str)
+        self.category_name = category_name
+        assert self.category_name is None or isinstance(self.category_name, str)
         self.goodreads_link = goodreads_link
+        assert self.goodreads_link is None or isinstance(self.goodreads_link, str)
         self.amazon_link = amazon_link
+        assert self.amazon_link is None or isinstance(self.amazon_link, str)
         self.average_rating = average_rating
+        assert self.average_rating is None or isinstance(self.category_name, float)
         self.num_ratings = num_ratings
+        assert self.num_ratings is None or isinstance(self.num_ratings, int)
     
     def already_in_df(self, df):
         if df['Audible_Title'].str.contains(self.title, regex = False).any():  # If the title matches a title of a row in the df, check whether the author matches the author of that row in the df
@@ -112,20 +182,8 @@ class Book:
         df.loc[len(df),:] = [self.title, self.subtitle, self.author, self.audible_link, self.image_link, self.category, self.goodreads_link, self.amazon_link, self.average_rating, self.num_ratings]
         return df
 
-
-
-categories_dict = {'cat1': 'url1', 'cat2': 'url2'}
-categories = [Category(name = key, url = value) for key, value in categories_dict.items()]
-
-audible_pages = [AudiblePage(category, i+1) for i, category in enumerate(categories)] # No, we need multiple pages per category, not just one per category
-audible_pages_html = {}
-for audible_page in audible_pages:
-    audible_pages_html[audible_page] = audible_page.get_html_list_of_items(web) # This is a list for each audible_page, so a dictionary of lists
-
-    audible_items = [AudibleItem(audible_page.category_name, html_for_item) for html_for_item in audible_pages_html[audible_page]]
-    for audible_item in audible_items:
-        if df['Audible_Title'].str.contains(audible_item.title, regex = False).any() == False:  # If the title is not already in the database, add it to the database
-            df.loc[len(df),:] = [audible_item.title, audible_item.subtitle, audible_item.author, audible_item.audible_link, audible_item.image_link, audible_item.category, None, None, None, None]
-        elif df.loc[df['Audible_Title'].str.contains(audible_item.title, regex = False)]['Audible_Category'].str.contains(audible_item.category, regex = False).any() == False:  # If it's already in the database and doesn't have the current category, add the current category
-            df.loc[df.loc[:,'Audible_Title'].str.contains(audible_item.title, regex = False), 'Audible_Category'] = df.loc[df.loc[:,'Audible_Title'].str.contains(audible_item.title, regex = False), 'Audible_Category'] + ', ' + audible_item.category
-        
+    def __repr__(self):
+        if self.author:
+            return self.title + ': ' + self.author + '\n'
+        else:
+            return self.title + '\n'

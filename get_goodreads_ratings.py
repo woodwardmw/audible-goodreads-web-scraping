@@ -13,6 +13,7 @@ import os
 from goodreads import getRating, getRatingFromRow, getGoodreadsMatches
 from audible import audibleLogin, getCategories, getAudibleDataForCategory
 from amazon import amazonLogin, getAmazonMatches
+import audible
 
 base_url = 'https://www.audible.com/special-promo/2for1/cat?node=23435846011'
 book_file = 'Monster_Sale_Oct_2021.csv'  # Can be just the Audible list, or an already processed merge of Audible and Goodreads Data

@@ -11,8 +11,9 @@ import pandas as pd
 import os
 
 from goodreads import getRating, getRatingFromRow, getGoodreadsMatches
-from audible import audibleLogin, getCategories, getAudibleDataForCategory
+from audible import getCategories, getAudibleDataForCategory
 from amazon import amazonLogin, getAmazonMatches
+from getData import audibleLogin
 import audible
 
 base_url = 'https://www.audible.com/special-promo/2for1/cat?node=23435846011'

@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
-from webbot import Browser 
+from webbot import Browser
+import pandas as pd
 
 LIST_OF_ITEMS_SELECT_PREFIX = None # Input here
 TEXT_DIV_SELECT_PREFIX = None
@@ -19,16 +20,16 @@ class AudiblePage(Category):
     category: Category
     page_number: int
     def __init__(self, category, page_number):
-        super().__init__(self, category.category_name, category.url)
+        super().__init__(category.category_name, category.url)
         self.page_number = page_number
     
     def get_html_list_of_items(self, web) -> list:
         """For the Audible page, returns a list of HTML chunks each list entry containing the HTML relating to one book"""
-            web.go_to(self.url + '&pageSize=50&page=' + str(self.page_number))
-            audible_page_html = web.get_page_source()
-            audible_page_html_parsed = BeautifulSoup(audible_page_html, 'html.parser')
-            items_html_parsed = audible_page_html_parsed.select(LIST_OF_ITEMS_SELECT_PREFIX)
-            return items_html_parsed
+        web.go_to(self.url + '&pageSize=50&page=' + str(self.page_number))
+        audible_page_html = web.get_page_source()
+        audible_page_html_parsed = BeautifulSoup(audible_page_html, 'html.parser')
+        items_html_parsed = audible_page_html_parsed.select(LIST_OF_ITEMS_SELECT_PREFIX)
+        return items_html_parsed
 
 class AudibleItem(AudiblePage):
     """An Audible item, defined by a chunk of HTML, relating to one book"""
@@ -101,7 +102,7 @@ class Book:
 
 
 categories_dict = {'cat1': 'url1', 'cat2': 'url2'}
-categories = [Category(name = key, url = value) for key, value in categories_dict.items()]
+categories = [Category(category_name = key, url = value) for key, value in categories_dict.items()]
 
 audible_pages = [AudiblePage(category, i+1) for i, category in enumerate(categories)] # No, we need multiple pages per category, not just one per category
 audible_pages_html = {}

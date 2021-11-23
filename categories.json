@@ -1,46 +1,54 @@
 [
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-fiction?ref=a_ep_black-_c5_tab2",
-        "category_name": "Fiction"
+        "url": "https://www.audible.com/search?node=18573519011",
+        "category_name": "Africa"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-mt?ref=a_ep_black-_c5_tab3",
-        "category_name": "Mysteries & Thrillers"
+        "url": "https://www.audible.com/search?node=18573526011",
+        "category_name": "Americas"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-sff?ref=a_ep_black-_c5_tab4",
-        "category_name": "Sci-Fi & Fantasy"
+        "url": "https://www.audible.com/search?node=18573549011",
+        "category_name": "Ancient History"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-rom?ref=a_ep_black-_c5_tab5",
-        "category_name": "Romance"
+        "url": "https://www.audible.com/search?node=18573559011",
+        "category_name": "Arctic & Antarctica"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-nonfic?ref=a_ep_black-_c5_tab6",
-        "category_name": "Nonfiction"
+        "url": "https://www.audible.com/search?node=18573560011",
+        "category_name": "Asia"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-spanish?ref=a_ep_black-_c5_tab7",
-        "category_name": "Spanish Language"
+        "url": "https://www.audible.com/search?node=18573575011",
+        "category_name": "Australia, New Zealand & Oceania"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-courses?ref=a_ep_black-_c5_tab8",
-        "category_name": "The Great Courses"
+        "url": "https://www.audible.com/search?node=18573582011",
+        "category_name": "Europe"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-kids?ref=a_ep_black-_c5_tab9",
-        "category_name": " Kids & Teens"
+        "url": "https://www.audible.com/search?node=18573635011",
+        "category_name": "Middle East"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-5?ref=a_ep_black-_c5_tab10",
-        "category_name": "$5 Titles"
+        "url": "https://www.audible.com/search?node=18573647011",
+        "category_name": "Military"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-6?ref=a_ep_black-_c5_tab11",
-        "category_name": "$6 Titles"
+        "url": "https://www.audible.com/search?node=18573683011",
+        "category_name": "Religious"
     },
     {
-        "url": "https://www.audible.com/ep/black-friday-week-sale-2021-7?ref=a_ep_black-_c5_tab12",
-        "category_name": "$7 Titles"
+        "url": "https://www.audible.com/search?node=18573686011",
+        "category_name": "Russia"
+    },
+    {
+        "url": "https://www.audible.com/search?node=18573694011",
+        "category_name": "Women"
+    },
+    {
+        "url": "https://www.audible.com/search?node=18573695011",
+        "category_name": "World"
     }
 ]

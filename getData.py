@@ -5,6 +5,8 @@ import time
 import audible
 import pickle
 import json
+from types import SimpleNamespace
+
 
 df = pd.DataFrame({'Audible_Title':pd.Series([], dtype='str'), 'Audible_Subtitle':pd.Series([], dtype='str'), 'Audible_Author':pd.Series([], dtype='str'), 'Audible_Link':pd.Series([], dtype='str'), 'Image_Link':pd.Series([], dtype='str'), 'Audible_Category':pd.Series([], dtype='str'), 'Goodreads_Link':pd.Series([], dtype='str'), 'Amazon_Link':pd.Series([], dtype='str'), 'Goodreads_Rating':pd.Series([], dtype='float'), 'Number_of_Ratings':pd.Series([], dtype='int')})
 
@@ -52,4 +54,6 @@ class Setup:
     def loadJson(filename):
         with open(filename, 'r') as f:
             variable = f.read()
-        return json.loads(variable)
+
+        return json.loads(variable, object_hook=lambda d: SimpleNamespace(**d))
+

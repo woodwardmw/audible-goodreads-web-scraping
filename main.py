@@ -6,6 +6,7 @@ import os
 import settings
 import read_data
 import write_data
+import amazon
 
 
 def obj_dict(obj):
@@ -19,10 +20,9 @@ def main():
     if settings.IMPORT_CATEGORIES_SOURCE != 'bin':
         setup.saveCategories(categories)
     
-    books = setup.loadBooks(settings.IMPORT_BOOKS_SOURCE)
+    books = setup.loadBooks(settings.IMPORT_BOOKS_SOURCE, categories = categories)
     if settings.IMPORT_BOOKS_SOURCE != 'bin':
         setup.saveBooks(books)
-    print(books)
     # Add each book to df. If it is already there, add the current book category, if it's not there.
     for book in books:
         if book.is_in_df(df):
@@ -45,6 +45,13 @@ def main():
 
         setup.saveBooks(books)
         df.to_csv(os.getcwd() + '/data/' + settings.BOOK_FILE, index = False)
+
+    if settings.GET_AMAZON_LINKS:
+        books = setup.getAmazonLinks(books)
+        write_data.write_column_to_df(books, df, 'Amazon_Link', 'amazon_link')
+        setup.saveBooks(books)
+        df.to_csv(os.getcwd() + '/data/' + settings.BOOK_FILE, index = False)
+
 
 
     # print(books)

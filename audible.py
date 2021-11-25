@@ -185,12 +185,19 @@ class Book:
 
     def add_category_to_existing(self, category_name, df):
         # self.category_list.append(category_name)
-        if df['Audible_Title'].str.contains(self.title, regex = False).any():
+        if self.already_in_df(df):
             row_in_df = df.index[df['Audible_Title'].str.contains(self.title, regex = False)]
             # print(df.loc[row_in_df, 'Audible_Category'].str.contains(category_name).any())
             if not df.loc[row_in_df, 'Audible_Category'].str.contains(category_name).any():
                 df.loc[row_in_df, 'Audible_Category'] += ', ' + category_name
         return df
+    
+    def replace_existing(self, column, data, df):
+        if self.already_in_df(df):
+            row_in_df = df.index[df['Audible_Title'].str.contains(self.title, regex = False)]
+            df.loc[row_in_df, column] = data
+        return df
+
 
     
     # def get_goodreads_rating(self):
@@ -202,16 +209,6 @@ class Book:
     
     def get_df_field(self, df, field):
         return df[(df['Audible_Title'] == self.title) & (df['Audible_Author'] == self.author)].iloc[0][field]
-    
-    
-    
-    # if GRnumratings is not None:
-    #     possibleRow = [index, goodreads_URL, float(GRrating), int(GRnumratings.replace(',', ''))]
-    #     possibles.loc[len(possibles)] = possibleRow
-    #     finished = True
-
-    
-
 
     def __repr__(self):
         if self.author:
@@ -219,6 +216,33 @@ class Book:
         else:
             return self.title + '\n' + str(self.category) + '\n' + str(self.average_rating) + ' | ' + str(self.num_ratings)
 
+def main():
+    book1 =  Book(
+        "The Huntress",
+        "Kate Quinn",
+        "https://www.audible.com/pd/The-Huntress-Audiobook/006289482X?ref=a_ep_black-_c10_lProduct_1_1&pf_rd_p=ebb303be-30a4-4f6e-bec6-a7604e9f0c63&pf_rd_r=R0EJM3GY7J7FM6JE1HKD",
+        "https://m.media-amazon.com/images/I/51TptSvhIWL._SL500_.jpg",
+        ["Fiction"],
+        "A Novel",
+        None,
+        None,
+        None,
+        None)
+    book2 = Book(
+        "Mrs. Everything",
+        "Jennifer Weiner",
+        "https://www.audible.com/pd/Mrs-Everything-Audiobook/1508251800?ref=a_ep_black-_c10_lProduct_1_2&pf_rd_p=ebb303be-30a4-4f6e-bec6-a7604e9f0c63&pf_rd_r=R0EJM3GY7J7FM6JE1HKD",
+        "https://m.media-amazon.com/images/I/41chzE2cibL._SL500_.jpg",
+        ["Fiction"],
+        "A Novel",
+        None,
+        None,
+        None,
+        None
+)
+    df = pd.DataFrame({'Audible_Title': ['The Huntress', 'Mrs. Everything'], 'Audible_Author':['Kate Quinn', 'Jennifer Weiner'], 'col2': ['test3', 'test4']})
+    print(book2.get_df_field(df, 'col2'))
 
-
+if __name__ == '__main__':
+    main()
     

@@ -104,7 +104,7 @@ def get_goodreads_ratings(books):
     for book in books:
         if True:
             if settings.REFRESH_EXISTING or book.average_rating == None or book.average_rating == 0:
-                linked_URLs = pd.read_csv(os.getcwd() + '/' + settings.LINKED_URLS)
+                linked_URLs = pd.read_csv(os.getcwd() + '/data/' + settings.LINKED_URLS)
                 if book.is_in_df(linked_URLs):
                     book.goodreads_link = book.get_df_field(linked_URLs, 'Goodreads_Link')
                     book.average_rating, book.num_ratings = get_rating_from_url(book.goodreads_link)

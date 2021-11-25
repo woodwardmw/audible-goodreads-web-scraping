@@ -4,15 +4,15 @@ import pandas as pd
 import os
 import re
 import utils
+import math
+import requests
+import settings
 
 def getRatingFromRow(row):
     ratingLinks = row.findAll('span', {'class': 'minirating'})
     for link in ratingLinks:
-        # print(link)
         ratingString = re.split('\s', link.text.strip())
-        print(ratingString)
         GRrating = ratingString[ratingString.index('avg')-1]
-        # print(GRrating)
         GRnumratings = ratingString[ratingString.index('avg')+3]
     return GRrating, GRnumratings
 
@@ -33,41 +33,87 @@ def get_rating_from_url(url):
 
 def get_rating_from_search(title, author):
     goodreads_match = None
-    title_adjusted = title.split(':', 1)[0].replace(' ', '+').replace("'","%27")
-    author_adjusted = author.replace(' ', '+').replace("'","%27").replace('PhD', '').replace('MD', '').replace('Dr', '').replace('translator', '').replace('foreword', '').replace('featuring', '').replace('introduction', '').replace('note', '').replace('afterword', '').replace('essay', '').replace('contributor', '')
-    search_url = 'https://www.goodreads.com/search?q=' + title_adjusted + '+' + author_adjusted
+    search_url = get_search_url(title, author)
     goodreads_page = requests.get(search_url)
     goodreads_soup = BeautifulSoup(goodreads_page.text, 'html.parser')
     rows = goodreads_soup.select('body > div > div > div > div > div.leftContainer > table.tableList > tr')
+    possibles = get_possible_matches_from_rows(rows, title, author)
+    goodreads_match = utils.best_row_item(possibles)
+    print(goodreads_match)
+    if goodreads_match:
+        return goodreads_match.goodreads_rating, goodreads_match.goodreads_num_ratings, goodreads_match.goodreads_link
+    else:
+        title = re.sub(r'\[.+\]', '', title)
+        author = re.sub(r', The Great Courses', '', author)
+        search_url = get_search_url(title, author)
+        goodreads_page = requests.get(search_url)
+        goodreads_soup = BeautifulSoup(goodreads_page.text, 'html.parser')
+        rows = goodreads_soup.select('body > div > div > div > div > div.leftContainer > table.tableList > tr')
+        possibles = get_possible_matches_from_rows(rows, title, author)
+        goodreads_match = utils.best_row_item(possibles)
+        print(goodreads_match)
+        if goodreads_match:
+            return goodreads_match.goodreads_rating, goodreads_match.goodreads_num_ratings, goodreads_match.goodreads_link
+    return None, None, None
+
+def get_possible_matches_from_rows(rows, title, author):
+    possibles = []
     for row in rows:
-        possibles = []
         titleLinks = row.findAll('a',{'class': 'bookTitle'})
         for link in titleLinks:
             goodreads_title = link.find('span').text
             goodreads_link = 'https://www.goodreads.com' + link.get('href')
-            print('Goodreads title is: ' + goodreads_title)
         authorLinks = row.findAll('a',{'class': 'authorName'})
         for link in authorLinks:
             goodreads_author = link.find('span').text
-        author_tokens = utils.get_tokens(author)
-        goodreads_author_tokens = utils.get_tokens(goodreads_author)
-        title_tokens = utils.get_tokens(title)
-        goodreads_title_tokens = utils.get_tokens(goodreads_title)
-        if utils.compare_lists(author_tokens, goodreads_author_tokens) >=2 and utils.compare_lists(title_tokens, goodreads_title_tokens) >=2:      
-            goodreads_rating, goodreads_num_ratings = getRatingFromRow(row)
-            possibles.append(GoodreadsMatch(goodreads_link, goodreads_rating, goodreads_num_ratings)) 
-            finished = True
-            break
-        goodreads_match = utils.best_row_item(possibles)
-    if goodreads_match:
-        return goodreads_match.goodreads_rating, goodreads_match.goodreads_num_ratings
-    return None, None
+            author_tokens = utils.get_tokens(author)
+            goodreads_author_tokens = utils.get_tokens(goodreads_author)
+            title_tokens = utils.get_tokens(title)
+            goodreads_title_tokens = utils.get_tokens(goodreads_title)
+            print(author_tokens)
+            print(goodreads_author_tokens)
+            print(title_tokens)
+            print(goodreads_title_tokens)
+            print(utils.compare_lists(author_tokens, goodreads_author_tokens))
+            print(utils.compare_lists(title_tokens, goodreads_title_tokens))
+            if utils.compare_lists(author_tokens, goodreads_author_tokens) >=min(len(goodreads_title_tokens), len(goodreads_title_tokens), 2) and utils.compare_lists(title_tokens, goodreads_title_tokens) >= min(len(title_tokens), len(title_tokens), 2):
+                print('Possible match')      
+                goodreads_rating, goodreads_num_ratings = getRatingFromRow(row)
+                possibles.append(GoodreadsMatch(goodreads_link, goodreads_rating, goodreads_num_ratings))
+                print(possibles)
+                finished = True
+                break
+    return possibles
+
+
+def get_search_url(title, author):
+    title_adjusted = title.split(':', 1)[0].replace(' ', '+').replace("'","%27")
+    author_adjusted = author.replace(' ', '+').replace("'","%27").replace('PhD', '').replace('MD', '').replace('Dr ', '').replace('Dr.', '').replace('translator', '').replace('foreword', '').replace('featuring', '').replace('introduction', '').replace('note', '').replace('afterword', '').replace('essay', '').replace('contributor', '')
+    return 'https://www.goodreads.com/search?q=' + title_adjusted + '+' + author_adjusted
 
 class GoodreadsMatch:
     def __init__(self, goodreads_link, goodreads_rating = None, goodreads_num_ratings = None):
         self.goodreads_link = goodreads_link
         self.goodreads_rating = goodreads_rating
         self.goodreads_num_ratings = goodreads_num_ratings
+
+    def __repr__(self) -> str:
+        return self.goodreads_link + ' ' + str(self.goodreads_rating) + ' ' + str(self.goodreads_num_ratings)
+
+def get_goodreads_ratings(books):
+    for book in books:
+        if True:
+            if settings.REFRESH_EXISTING or book.average_rating == None or book.average_rating == 0:
+                linked_URLs = pd.read_csv(os.getcwd() + '/' + settings.LINKED_URLS)
+                if book.is_in_df(linked_URLs):
+                    book.goodreads_link = book.get_df_field(linked_URLs, 'Goodreads_Link')
+                    book.average_rating, book.num_ratings = get_rating_from_url(book.goodreads_link)
+                else:
+                    book.average_rating, book.num_ratings, book.goodreads_link = get_rating_from_search(book.title, book.author)
+            print(book)
+    return books
+
+# print(get_rating_from_search("Enemy of the World", 'Road Warrior'))
 
 # def getGoodreadsMatches(book_df, linked_URLs, refresh_existing = False):
 #     possibles = pd.DataFrame({'Book ID':pd.Series([], dtype='int'), 'Goodreads_Link':[], 'Goodreads_Rating':pd.Series([], dtype='float'), 'Number_of_Ratings':pd.Series([], dtype='int')})

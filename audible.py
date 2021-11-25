@@ -5,7 +5,7 @@ import requests
 import pandas as pd
 
 
-from main import BOOK_ITEM_SELECT, IMAGE_DIV_SELECT, TEXT_DIV_SELECT
+# from main import BOOK_ITEM_SELECT, IMAGE_DIV_SELECT, TEXT_DIV_SELECT
 
 class Category:
     """A category in the Audible sale"""
@@ -30,13 +30,11 @@ class Category:
             print(new_page)
             if not audible_pages:
                 audible_pages.append(new_page)
-                print(f'Page {page_number} added')
             elif new_page == audible_pages[-1]:
                 print(f'Page {page_number} is the same as the previous one')
                 break
             else:
                 audible_pages.append(new_page)
-                print(f'Page {page_number} added')
             page_number += 1
         return audible_pages
 
@@ -73,7 +71,6 @@ class AudiblePage:
         audible_items = []
         for html_for_item in self.html_list_of_items:
             new_item = AudibleItem(self.category_name, html_for_item, IMAGE_DIV_SELECT, TEXT_DIV_SELECT)
-            print(new_item)
             if any(item.title == new_item.title and item.author == new_item.author for item in audible_items):
                 existing_item = next(item for item in audible_items if item.title == new_item.title and item.author == new_item.author)
                 existing_item.category_name = existing_item.category_name + ', ' + self.category_name
@@ -151,7 +148,7 @@ class AudibleItem:
             return self.title
 
 class Book:
-    def __init__(self, title, author, audible_link, image_link, category_list, subtitle = None, goodreads_link = None, amazon_link = None, average_rating = 0, num_ratings = 0):
+    def __init__(self, title, author, audible_link, image_link, category, subtitle = None, goodreads_link = None, amazon_link = None, average_rating = 0, num_ratings = 0):
         self.title = title
         # assert self.title is None or isinstance(self.title, str)
         self.subtitle = subtitle
@@ -162,7 +159,7 @@ class Book:
         # assert self.audible_link is None or isinstance(self.audible_link, str)
         self.image_link = image_link
         # assert self.image_link is None or isinstance(self.image_link, str)
-        self.category_list = category_list
+        self.category = category
         # assert self.category_name is None or isinstance(self.category_name, str)
         self.goodreads_link = goodreads_link
         # assert self.goodreads_link is None or isinstance(self.goodreads_link, str)
@@ -176,22 +173,24 @@ class Book:
 
 
     def already_in_df(self, df):
-        if row_in_df := df['Audible_Title'].str.contains(self.title, regex = False).any():  # If the title matches a title of a row in the df, check whether the author matches the author of that row in the df
-            # row_in_df = df['Audible_Title'].str.contains(self.title, regex = False)
+        if df['Audible_Title'].str.contains(self.title, regex = False).any():  # If the title matches a title of a row in the df, check whether the author matches the author of that row in the df
+            row_in_df = df['Audible_Title'].str.contains(self.title, regex = False)
             return df.loc[row_in_df]['Audible_Author'].str.contains(self.author, regex = False) # Previously had .any() - maybe it needs that?
         else:
             return False
     
     def add_to_df(self, df):
         """Add this book to the df"""
-        df.loc[len(df),:] = [self.title, self.subtitle, self.author, self.audible_link, self.image_link, ', '.join(self.category_list), self.goodreads_link, self.amazon_link, self.average_rating, self.num_ratings]
+        df.loc[len(df),:] = [self.title, self.subtitle, self.author, self.audible_link, self.image_link, self.category, self.goodreads_link, self.amazon_link, self.average_rating, self.num_ratings]
 
-    def add_category(self, category_name, df):
+    def add_category_to_existing(self, category_name, df):
         # self.category_list.append(category_name)
         if df['Audible_Title'].str.contains(self.title, regex = False).any():
             row_in_df = df.index[df['Audible_Title'].str.contains(self.title, regex = False)]
-            df.loc[row_in_df, 'Audible_Category'] += ', ' + category_name
-            print(f'Categories in df: {df.loc[row_in_df]["Audible_Category"]}')
+            # print(df.loc[row_in_df, 'Audible_Category'].str.contains(category_name).any())
+            if not df.loc[row_in_df, 'Audible_Category'].str.contains(category_name).any():
+                df.loc[row_in_df, 'Audible_Category'] += ', ' + category_name
+        return df
 
     
     # def get_goodreads_rating(self):
@@ -216,9 +215,9 @@ class Book:
 
     def __repr__(self):
         if self.author:
-            return self.title + ': ' + self.author + '\n' + str(self.category_list)
+            return self.title + ': ' + self.author + '\n' + str(self.category) + '\n' + str(self.average_rating) + ' | ' + str(self.num_ratings)
         else:
-            return self.title + '\n' + str(self.category_list)
+            return self.title + '\n' + str(self.category) + '\n' + str(self.average_rating) + ' | ' + str(self.num_ratings)
 
 
 

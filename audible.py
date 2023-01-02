@@ -4,6 +4,8 @@ import re
 import requests
 import pandas as pd
 
+import settings
+
 
 # from main import BOOK_ITEM_SELECT, IMAGE_DIV_SELECT, TEXT_DIV_SELECT
 
@@ -41,8 +43,6 @@ class Category:
     def __repr__(self):
         return self.category_name + ': ' + self.url
 
-    # def toJSON(self):
-    #     return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
 class AudiblePage:
     """An Audible page, corresponding to (part of) a category, with multiple books listed"""
@@ -53,16 +53,16 @@ class AudiblePage:
         self.category_name = category_name
         self.category_url = category_url
         self.page_number = page_number
-        self.html_list_of_items = self.get_html_list_of_items(web, BOOK_ITEM_SELECT)
-        self.items = self.getAudibleItems(IMAGE_DIV_SELECT, TEXT_DIV_SELECT)
+        self.html_list_of_items = self.get_html_list_of_items(web, settings.BOOK_ITEM_SELECT)
+        self.items = self.getAudibleItems(settings.IMAGE_DIV_SELECT, settings.TEXT_DIV_SELECT)
 
     # def __repr__(self):
     #     return self.category_name + ' / Page ' + str(self.page_number)
     
     def get_html_list_of_items(self, web, BOOK_ITEM_SELECT) -> list:
         """For the Audible page, returns a list of HTML chunks, each list entry containing the HTML relating to one book"""
-        web.go_to(self.category_url + '&pageSize=50&page=' + str(self.page_number))
-        audible_page_html = web.get_page_source()
+        web.get(self.category_url + '&pageSize=50&page=' + str(self.page_number))
+        audible_page_html = web.page_source
         audible_page_html_parsed = BeautifulSoup(audible_page_html, 'html.parser')
         html_list_of_items = audible_page_html_parsed.select(BOOK_ITEM_SELECT)
         return html_list_of_items
@@ -175,7 +175,7 @@ class Book:
     def already_in_df(self, df):
         if df['Audible_Title'].str.contains(self.title, regex = False).any():  # If the title matches a title of a row in the df, check whether the author matches the author of that row in the df
             row_in_df = df['Audible_Title'].str.contains(self.title, regex = False)
-            return df.loc[row_in_df]['Audible_Author'].str.contains(self.author, regex = False) # Previously had .any() - maybe it needs that?
+            return df.loc[row_in_df]['Audible_Author'].str.contains(self.author, regex = False).any() # Previously had .any() - maybe it needs that?
         else:
             return False
     
@@ -217,31 +217,7 @@ class Book:
             return self.title + '\n' + str(self.category) + '\n' + str(self.average_rating) + ' | ' + str(self.num_ratings)
 
 def main():
-    book1 =  Book(
-        "The Huntress",
-        "Kate Quinn",
-        "https://www.audible.com/pd/The-Huntress-Audiobook/006289482X?ref=a_ep_black-_c10_lProduct_1_1&pf_rd_p=ebb303be-30a4-4f6e-bec6-a7604e9f0c63&pf_rd_r=R0EJM3GY7J7FM6JE1HKD",
-        "https://m.media-amazon.com/images/I/51TptSvhIWL._SL500_.jpg",
-        ["Fiction"],
-        "A Novel",
-        None,
-        None,
-        None,
-        None)
-    book2 = Book(
-        "Mrs. Everything",
-        "Jennifer Weiner",
-        "https://www.audible.com/pd/Mrs-Everything-Audiobook/1508251800?ref=a_ep_black-_c10_lProduct_1_2&pf_rd_p=ebb303be-30a4-4f6e-bec6-a7604e9f0c63&pf_rd_r=R0EJM3GY7J7FM6JE1HKD",
-        "https://m.media-amazon.com/images/I/41chzE2cibL._SL500_.jpg",
-        ["Fiction"],
-        "A Novel",
-        None,
-        None,
-        None,
-        None
-)
-    df = pd.DataFrame({'Audible_Title': ['The Huntress', 'Mrs. Everything'], 'Audible_Author':['Kate Quinn', 'Jennifer Weiner'], 'col2': ['test3', 'test4']})
-    print(book2.get_df_field(df, 'col2'))
+    pass
 
 if __name__ == '__main__':
     main()

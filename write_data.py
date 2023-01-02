@@ -4,7 +4,7 @@ import audible
 def write_column_to_df(list, df, df_column, item_attribute):
     for item in list:
         if item.is_in_df(df):
-            row_in_df = df.index[df['Audible_Title'].str.contains(item.title, regex = False)]
+            row_in_df = df.index[(df['Audible_Title'].str.contains(item.title, regex = False)) & (df['Audible_Author'].str.contains(item.author, regex = False))]
             df.loc[row_in_df, df_column] = getattr(item, item_attribute)
     return df
 

@@ -9,10 +9,10 @@ def compare_lists(list1, list2):
 
 def best_row_item(list):
     """Takes a list of PossibleGoodreadsMatch objects and returns the one with the highest number of ratings"""
-    print(f'List of possibles: {list}')
+    # print(f'List of possibles: {list}')
     if not list:
         return None
-    list_of_num_ratings = [string_to_num(item.goodreads_num_ratings) for item in list]
+    list_of_num_ratings = [item.goodreads_num_ratings for item in list]
     max_num_ratings = max(list_of_num_ratings)    
     max_index = list_of_num_ratings.index(max_num_ratings)
     return list[max_index]

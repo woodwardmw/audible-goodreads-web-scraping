@@ -5,14 +5,14 @@ GET_GOODREADS_RATINGS = True
 GET_AMAZON_LINKS = False
 REFRESH_EXISTING = True
 
-BASE_URL = 'https://www.audible.com/ep/black-friday-week-sale-2021'
+BASE_URL = 'https://www.audible.com/special-promo/2for1/cat?node=23435846011'
 #BASE_CATEGORY = 'fiction'
-CATEGORY_SELECT = 'body > div.adbl-page > div.adbl-main > div#center-5 > div.bc-row-responsive > div.bc-col-responsive > div.bc-box > div.bc-box-padding-mini > div.bc-container > div.bc-row-responsive'
-BOOK_ITEM_SELECT = 'body > div.adbl-page > div.adbl-main > div#center-10 > div.bc-section > div > span > ul > div > li.productListItem'  # to end in li
-IMAGE_DIV_SELECT = 'div.bc-row-responsive > div.bc-col-9 > div.bc-row-responsive > div.bc-col-4 > div.bc-row-responsive > div.bc-col-12 > div'
-TEXT_DIV_SELECT = 'div.bc-row-responsive > div.bc-col-9 > div.bc-row-responsive > div.bc-col-7 > div.bc-row-responsive > div.bc-col-12 > span > ul'
+CATEGORY_SELECT = 'body > div.adbl-page > div.adbl-main > div.bc-container > div.bc-row-responsive > div.bc-col-responsive > div#left-1 > form > div.categories > span > ul.bc-list' # > div.bc-box-padding-mini > div.bc-container > div.bc-row-responsive'
+BOOK_ITEM_SELECT = 'body > div.adbl-page > div.adbl-main > div.bc-container > div.bc-row-responsive > div.bc-col-responsive > div#center-3 > div.bc-section > div.adbl-impression-container > div > span > ul.bc-list > li.productListItem'  # to end in li
+IMAGE_DIV_SELECT = 'div.bc-row-responsive > div.bc-col-8 > div.bc-row-responsive > div.bc-col-5 > div.bc-row-responsive > div.bc-col-12 > div'
+TEXT_DIV_SELECT = 'div.bc-row-responsive > div.bc-col-8 > div.bc-row-responsive > div.bc-col-6 > div.bc-row-responsive > div.bc-col-12 > span > ul'
 
-BOOK_FILE = 'Black_Friday_Sale_Nov_2021.csv'  # Can be just the Audible list, or an already processed merge of Audible and Goodreads Data
+BOOK_FILE = 'Dec-2022-Two-for-One.csv'  # Can be just the Audible list, or an already processed merge of Audible and Goodreads Data
 LINKED_URLS = 'Linked_URLs.csv'
 
 

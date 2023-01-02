@@ -1,5 +1,6 @@
 import asyncio
 import argparse
+import getpass
 from pathlib import Path
 
 import pandas as pd
@@ -82,6 +83,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--username", help="Username for Audible login")
-    parser.add_argument("--password", help="Password for Audible login")
+    parser.add_argument("--password", help="Password for Audible login. Can be left blank and entered after running the script so it's not visible on the screen.")
     args = parser.parse_args()
+    if not args.password:
+        args.password = getpass.getpass()
     main(args)
